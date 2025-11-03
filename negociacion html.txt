@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora y Asistente IA de Negociación Colectiva</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración para usar la fuente Inter -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 bg-gray-50 min-h-screen">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10 border border-blue-100">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-700 mb-2">
+                Asistente de Negociación Colectiva Reglada
+            </h1>
+            <p class="text-gray-600 text-lg">
+                Calculadora de Plazos y Asesor Legal IA (Código del Trabajo, Chile).
+            </p>
+        </header>
+
+        <!-- Sección de Entrada de Datos y Calculadora de Plazos (Original) -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold text-blue-800 mb-4">1. Calculadora de Plazos Críticos</h2>
+            <div class="bg-blue-50 p-6 rounded-lg shadow-inner mb-6 border-l-4 border-blue-500">
+                <label for="expirationDate" class="block text-lg font-semibold text-gray-800 mb-3">
+                    Ingrese la Fecha de Término del Instrumento Colectivo (IC) Vigente:
+                </label>
+                <input type="date" id="expirationDate"
+                       class="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-xl shadow-md"
+                       onchange="calculateDeadlines()">
+                <p class="text-sm text-gray-500 mt-2">
+                    Esta fecha es el punto de partida para calcular la ventana crítica de presentación del proyecto.
+                </p>
+            </div>
+
+            <!-- Resultados de la Calculadora -->
+            <div id="resultsSection" class="hidden mb-6">
+                <h3 class="text-xl font-semibold text-blue-700 mb-4">Hitos Procesales y Fechas Límite</h3>
+                <div class="overflow-x-auto shadow-lg rounded-xl">
+                    <table class="min-w-full bg-white rounded-xl">
+                        <thead class="bg-blue-700 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-sm font-medium uppercase rounded-tl-xl">Fase</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium uppercase">Hito Legal</th>
+                                <th class="py-3 px-4 text-center text-sm font-medium uppercase">Fecha Límite</th>
+                                <th class="py-3 px-4 text-center text-sm font-medium uppercase rounded-tr-xl">Art. C.T.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deadlinesTableBody" class="divide-y divide-gray-200">
+                            <!-- Filas insertadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alertas Críticas (Original) -->
+            <div id="alertsSection" class="hidden">
+                <h3 class="text-xl font-semibold text-red-700 mb-3">Alertas Críticas de Cumplimiento</h3>
+                <div id="alertsContent" class="space-y-4">
+                    <!-- Alertas dinámicas se insertarán aquí -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 2: Asesor Legal IA (Chat) -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold text-blue-800 mb-4 border-t pt-4">2. Asesor Legal IA (Consulta)</h2>
+            <p class="text-gray-600 mb-4">Pregunte al Asesor IA sobre artículos específicos, el proceso, o dudas legales del Código del Trabajo (Libro IV).</p>
+            
+            <div class="bg-gray-100 p-5 rounded-lg shadow-inner">
+                <div id="chatOutput" class="h-64 overflow-y-auto mb-4 p-3 bg-white border border-gray-300 rounded-lg text-sm space-y-3">
+                    <div class="text-gray-500 text-center">¡Hola! Pregúntame lo que necesites sobre la Negociación Colectiva Reglada.</div>
+                </div>
+
+                <textarea id="chatInput" rows="2" placeholder="Ej: ¿Qué significa el Piso de la Negociación? o ¿Cuál es el Art. 333?"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                
+                <button onclick="handleChatRequest()" id="chatButton"
+                        class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md flex items-center justify-center disabled:opacity-50">
+                    <span id="chatButtonText">Consultar al Asesor Legal</span>
+                    <svg id="chatSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- Sección 3: Asistente de Documentos (JSON Output) -->
+        <section>
+            <h2 class="text-2xl font-bold text-blue-800 mb-4 border-t pt-4">3. Asistente de Documentos (Proyecto Colectivo)</h2>
+            <p class="text-gray-600 mb-4">Utilice esta herramienta para generar una estructura JSON con la información base del Proyecto de Contrato Colectivo (Art. 330 C.T.).</p>
+            
+            <div class="bg-yellow-50 p-6 rounded-lg shadow-inner border-l-4 border-yellow-500 space-y-4">
+                <input type="text" id="sindicatoNombre" placeholder="Nombre del Sindicato (Ejem: Sindicato N°1 de Trabajadores)" class="w-full p-2 border rounded-lg">
+                <input type="text" id="rutSindicato" placeholder="RUT del Sindicato" class="w-full p-2 border rounded-lg">
+                <input type="text" id="empresaNombre" placeholder="Nombre de la Empresa" class="w-full p-2 border rounded-lg">
+                <input type="text" id="representanteLegal" placeholder="Representante Legal de la Empresa" class="w-full p-2 border rounded-lg">
+                <textarea id="clausulasClave" rows="3" placeholder="Ingresa 3 a 5 cláusulas clave que buscas mejorar (ej. Aumento de sueldo base al 5%, Bono de término de negociación de $1.000.000, 7 días de permiso administrativo)." class="w-full p-2 border rounded-lg resize-none"></textarea>
+                
+                <button onclick="handleDraftRequest()" id="draftButton"
+                        class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md flex items-center justify-center disabled:opacity-50">
+                    <span id="draftButtonText">Generar Borrador de Presentación (JSON)</span>
+                    <svg id="draftSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <textarea id="draftOutput" rows="8" readonly placeholder="El borrador JSON del documento aparecerá aquí." class="mt-4 w-full p-3 border border-gray-300 rounded-lg bg-white font-mono text-sm"></textarea>
+                <div id="draftFeedback" class="text-sm text-gray-700 mt-2 hidden"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE FIREBASE (MANDATORIO PARA EL ENTORNO) ---
+        // Aunque no usemos Firestore aquí, esta inicialización es requerida por el entorno.
+        // Se asume la disponibilidad de __app_id, __firebase_config, __initial_auth_token
+        // No es necesario importar los SDKs en este archivo ya que no se usa persistencia.
+
+        // --- FUNCIONES DE SOPORTE GENERAL ---
+
+        // Función auxiliar para sumar días a una fecha
+        const addDays = (date, days) => {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        };
+
+        // Función auxiliar para encontrar el próximo día hábil (Lunes a Viernes)
+        const addWorkingDays = (startDate, days) => {
+            let currentDate = new Date(startDate);
+            let addedDays = 0;
+            currentDate.setDate(currentDate.getDate() + 1); // Empezar a contar desde el día siguiente
+
+            while (addedDays < days) {
+                const day = currentDate.getDay();
+                if (day !== 0 && day !== 6) { // 0 = Domingo, 6 = Sábado
+                    addedDays++;
+                }
+                if (addedDays < days) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+            return currentDate;
+        };
+
+        const formatDate = (date) => {
+            return date.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        };
+
+        // --- CÁLCULO DE PLAZOS (FUNCIÓN ORIGINAL) ---
+        const calculateDeadlines = () => {
+            const expirationDateInput = document.getElementById('expirationDate');
+            const expirationDateValue = expirationDateInput.value;
+            const tableBody = document.getElementById('deadlinesTableBody');
+            const alertsContent = document.getElementById('alertsContent');
+
+            // Limpiar y ocultar secciones
+            tableBody.innerHTML = '';
+            alertsContent.innerHTML = '';
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('alertsSection').classList.add('hidden');
+
+            if (!expirationDateValue) return;
+
+            const icExpirationDate = new Date(expirationDateValue + 'T00:00:00');
+            const presentationWindowStart = addDays(icExpirationDate, -60);
+            const presentationWindowEnd = addDays(icExpirationDate, -45);
+            const criticalPresentationDate = presentationWindowEnd;
+            const employerResponseDate = addDays(criticalPresentationDate, 10);
+            const unionClaimsDeadline = addDays(employerResponseDate, 5);
+            const directNegotiationEnd = addDays(unionClaimsDeadline, 30); // Estimación
+            const strikeVoteDate = addDays(directNegotiationEnd, 1); // Estimación
+            const mediationEnd = addWorkingDays(strikeVoteDate, 5); // 5 días hábiles
+
+            const deadlines = [
+                { phase: 'I. Iniciación', name: 'Inicio Ventana Presentación Proyecto', date: presentationWindowStart, article: 'Art. 333 C.T.', alert: `El sindicato debe iniciar la presentación de su Proyecto Colectivo antes de esta fecha.`, style: 'text-green-700 bg-green-50' },
+                { phase: 'I. Iniciación', name: 'Término Ventana Presentación (PISO)', date: criticalPresentationDate, article: 'Art. 333 C.T.', alert: `¡CRÍTICO! Esta es la fecha LÍMITE para presentar el proyecto y asegurar el **Piso de la Negociación** (Art. 308 C.T.). La pérdida de este plazo implica la pérdida de los beneficios anteriores.`, style: 'text-red-700 bg-red-50 font-bold border-2 border-red-300' },
+                { phase: 'II. Sustancia', name: 'Respuesta del Empleador (Fecha Límite)', date: employerResponseDate, article: 'Art. 335 C.T.', alert: `Si el empleador no responde antes de esta fecha, el proyecto se considera **aceptado tácitamente** (Art. 337 C.T.).`, style: 'text-orange-700 bg-orange-50' },
+                { phase: 'III. Impugnación', name: 'Límite Reclamaciones Sindicales', date: unionClaimsDeadline, article: 'Art. 339 C.T.', alert: `Fecha límite para que el sindicato presente reclamaciones ante la Inspección del Trabajo respecto de la respuesta del empleador.`, style: 'text-yellow-800 bg-yellow-50' },
+                { phase: 'IV. Negociación', name: 'Término Estimado Negociación Directa/Última Oferta', date: directNegotiationEnd, article: 'Art. 340-345 C.T.', alert: `Estimación del fin de la mesa de negociación directa y presentación de la Última Oferta por parte del empleador.`, style: 'text-blue-700 bg-blue-50' },
+                { phase: 'V. Conflicto', name: 'Votación de Huelga (Estimada)', date: strikeVoteDate, article: 'Art. 350 C.T.', alert: `Día estimado para la votación de la huelga, a realizarse ante ministro de fe. Mayoría absoluta requerida.`, style: 'text-purple-700 bg-purple-50' },
+                { phase: 'V. Conflicto', name: 'Término Estimado Mediación Obligatoria', date: mediationEnd, article: 'Art. 353 C.T.', alert: `Último día de mediación obligatoria (5 días hábiles). Si no hay acuerdo, la huelga se hace efectiva al inicio del día hábil siguiente.`, style: 'text-red-700 bg-red-100' },
+            ];
+
+            // Renderizado
+            deadlines.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = `hover:bg-gray-50 transition duration-150 ${item.style}`;
+                row.innerHTML = `<td class="py-3 px-4 whitespace-nowrap text-sm font-semibold text-gray-700">${item.phase}</td><td class="py-3 px-4 text-sm text-gray-900">${item.name}</td><td class="py-3 px-4 text-sm text-center font-bold">${formatDate(item.date)}</td><td class="py-3 px-4 text-sm text-center text-blue-900 font-mono">${item.article}</td>`;
+                tableBody.appendChild(row);
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 rounded-lg shadow-md border-l-4 border-red-600 bg-red-50 text-red-800`;
+                alertDiv.innerHTML = `<p class="font-semibold">${item.name}:</p> <p>${item.alert}</p>`;
+                alertsContent.appendChild(alertDiv);
+            });
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('alertsSection').classList.remove('hidden');
+        };
+
+        // --- FUNCIONES DE COMUNICACIÓN CON LA API DE GEMINI ---
+
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+        const apiKey = ""; // La clave será inyectada en el entorno
+
+        // Implementación de Fetch con Reintento por Backoff Exponencial
+        const fetchWithRetry = async (url, options, maxRetries = 5, delay = 1000) => {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429) { // 429 Too Many Requests
+                        return response;
+                    }
+                } catch (error) {
+                    console.error("Fetch failed, retrying...", error);
+                }
+                await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+            }
+            throw new Error("API call failed after multiple retries.");
+        };
+
+        // Función central para llamar a la API de Gemini
+        const callGeminiApi = async (userQuery, systemPrompt, tools = [], responseSchema = null) => {
+            const finalUrl = `${API_URL}?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: tools.length > 0 ? tools : undefined,
+            };
+
+            const headers = { 'Content-Type': 'application/json' };
+
+            if (responseSchema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema,
+                };
+            }
+
+            try {
+                const response = await fetchWithRetry(finalUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    return text;
+                } else if (result.error) {
+                    throw new Error(result.error.message || "Error desconocido de la API.");
+                } else {
+                    return "No se pudo obtener una respuesta válida del modelo. Intenta reformular la pregunta.";
+                }
+            } catch (error) {
+                console.error("Error en callGeminiApi:", error);
+                return `Error al comunicarse con el Asesor IA: ${error.message}.`;
+            }
+        };
+
+        // --- FUNCIONES DEL ASESOR LEGAL IA (CHAT) ---
+
+        const handleChatRequest = async () => {
+            const chatInput = document.getElementById('chatInput');
+            const chatOutput = document.getElementById('chatOutput');
+            const chatButton = document.getElementById('chatButton');
+            const chatButtonText = document.getElementById('chatButtonText');
+            const chatSpinner = document.getElementById('chatSpinner');
+
+            const query = chatInput.value.trim();
+            if (!query) return;
+
+            // 1. Mostrar la pregunta del usuario
+            chatOutput.innerHTML += `<div class="p-2 bg-blue-100 rounded-lg self-end max-w-3/4 ml-auto text-right font-semibold">Tú: ${query}</div>`;
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+            chatInput.value = '';
+
+            // 2. Deshabilitar y mostrar loading
+            chatButton.disabled = true;
+            chatButtonText.textContent = 'Pensando...';
+            chatSpinner.classList.remove('hidden');
+
+            const systemPrompt = "Eres un Asesor Legal experto en Derecho Laboral chileno, específicamente en el Libro IV del Código del Trabajo (Negociación Colectiva). Responde de forma concisa, profesional y siempre citando los artículos relevantes del Código del Trabajo cuando corresponda. Proporciona solo el texto legal y explicativo solicitado, sin preámbulos.";
+
+            // 3. Llamar a la API de Gemini
+            const responseText = await callGeminiApi(query, systemPrompt, [{ "google_search": {} }]); // Usamos grounding para información actualizada
+
+            // 4. Mostrar la respuesta del modelo
+            chatOutput.innerHTML += `<div class="p-2 bg-gray-200 rounded-lg max-w-3/4 mr-auto">IA: ${responseText}</div>`;
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+
+            // 5. Restaurar el botón
+            chatButton.disabled = false;
+            chatButtonText.textContent = 'Consultar al Asesor Legal';
+            chatSpinner.classList.add('hidden');
+        };
+        
+        // Permite enviar con Enter
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleChatRequest();
+            }
+        });
+
+
+        // --- FUNCIONES DEL ASISTENTE DE DOCUMENTOS (JSON) ---
+
+        const projectSchema = {
+            type: "OBJECT",
+            properties: {
+                "fecha_presentacion_estimada": { "type": "STRING", "description": "Fecha actual de la presentación (DD/MM/AAAA)." },
+                "datos_sindicato": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "nombre": { "type": "STRING" },
+                        "rut": { "type": "STRING" },
+                        "domicilio": { "type": "STRING", "description": "Domicilio legal para notificaciones." },
+                        "numero_socios": { "type": "STRING", "description": "Número de socios que negocian." }
+                    }
+                },
+                "datos_empresa": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "nombre": { "type": "STRING" },
+                        "rut": { "type": "STRING", "description": "Rut de la empresa." },
+                        "representante_legal": { "type": "STRING" }
+                    }
+                },
+                "clausulas_centrales_propuestas": {
+                    "type": "ARRAY",
+                    "items": { "type": "STRING" },
+                    "description": "Las 3 a 5 cláusulas más importantes para el sindicato."
+                },
+                "requisitos_adicionales": { "type": "STRING", "description": "Declaración de cumplimiento del Art. 330 del C.T." }
+            },
+            "required": ["fecha_presentacion_estimada", "datos_sindicato", "datos_empresa", "clausulas_centrales_propuestas"]
+        };
+
+
+        const handleDraftRequest = async () => {
+            const sindicatoNombre = document.getElementById('sindicatoNombre').value;
+            const rutSindicato = document.getElementById('rutSindicato').value || "Pendiente";
+            const empresaNombre = document.getElementById('empresaNombre').value;
+            const representanteLegal = document.getElementById('representanteLegal').value;
+            const clausulasClave = document.getElementById('clausulasClave').value;
+            
+            const draftOutput = document.getElementById('draftOutput');
+            const draftFeedback = document.getElementById('draftFeedback');
+            const draftButton = document.getElementById('draftButton');
+            const draftButtonText = document.getElementById('draftButtonText');
+            const draftSpinner = document.getElementById('draftSpinner');
+
+            if (!sindicatoNombre || !empresaNombre || !representanteLegal || !clausulasClave) {
+                draftOutput.value = "Por favor, complete todos los campos de entrada.";
+                draftFeedback.classList.remove('hidden');
+                draftFeedback.textContent = "Error: Faltan datos obligatorios para generar el borrador.";
+                return;
+            }
+
+            // 1. Construir el prompt de usuario
+            const userPrompt = `Genera un borrador JSON para la Presentación del Proyecto de Contrato Colectivo. Utiliza los siguientes datos: Sindicato: ${sindicatoNombre} con RUT ${rutSindicato}. Empresa: ${empresaNombre}, representada legalmente por ${representanteLegal}. Las cláusulas más importantes que el sindicato quiere incluir son: ${clausulasClave}. Usa la fecha de hoy para la presentación.`;
+
+            // 2. Configurar el sistema y el loading
+            const systemPrompt = "Eres un asistente legal especializado en la redacción de documentos chilenos de negociación colectiva. Tu única función es generar una estructura JSON estricta y limpia, siguiendo el esquema proporcionado, que sirva como plantilla para la 'Presentación del Proyecto de Contrato Colectivo' (Art. 330 C.T.). NO incluyas texto explicativo, solo el objeto JSON.";
+            
+            draftButton.disabled = true;
+            draftButtonText.textContent = 'Generando Borrador...';
+            draftSpinner.classList.remove('hidden');
+            draftOutput.value = 'Cargando...';
+            draftFeedback.classList.add('hidden');
+
+            // 3. Llamar a la API de Gemini con esquema
+            const jsonText = await callGeminiApi(userPrompt, systemPrompt, [], projectSchema);
+            
+            // 4. Procesar y mostrar el resultado
+            try {
+                const parsedJson = JSON.parse(jsonText);
+                draftOutput.value = JSON.stringify(parsedJson, null, 2);
+                draftFeedback.classList.remove('hidden');
+                draftFeedback.textContent = "Borrador JSON generado con éxito. Copia y pega esta estructura para completar el documento formal.";
+                draftFeedback.className = "text-sm text-green-700 mt-2 p-2 bg-green-100 rounded";
+            } catch (e) {
+                draftOutput.value = "Error al parsear la respuesta del IA. Intenta de nuevo.";
+                draftFeedback.classList.remove('hidden');
+                draftFeedback.textContent = `Error: La IA no pudo generar el JSON estructurado. Respuesta cruda: ${jsonText.substring(0, 100)}...`;
+                draftFeedback.className = "text-sm text-red-700 mt-2 p-2 bg-red-100 rounded";
+            }
+            
+            // 5. Restaurar el botón
+            draftButton.disabled = false;
+            draftButtonText.textContent = 'Generar Borrador de Presentación (JSON)';
+            draftSpinner.classList.add('hidden');
+        };
+    </script>
+
+</body>
+</html>
